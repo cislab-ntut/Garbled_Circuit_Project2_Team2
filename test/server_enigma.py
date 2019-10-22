@@ -141,6 +141,8 @@ def main(start1,start2, Input):
             g = pos_count(s1, step13)
             # print(order_list[g] , end='')
             output.append(order_list[g])
+        print(*output,sep='')
+        print('↓')
         INPUT = output
     print('server output = ',*output,sep='')
 

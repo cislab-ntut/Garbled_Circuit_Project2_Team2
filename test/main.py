@@ -60,8 +60,8 @@ def main():
     w_num = []
     w_num.append(int(w[0]))
     w_num.append(int(w[1]))
+    print(F[w_num[0]*2+w_num[1]],'\n↓')
     enigma.main(A[w_num[0]],B[w_num[1]],F[w_num[0]*2+w_num[1]])
-
 
 if __name__ == '__main__':
     main()
