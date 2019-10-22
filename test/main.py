@@ -2,11 +2,8 @@ import random
 import enigma
 from tabulate import tabulate
 
-
 char_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
              'V', 'W', 'X', 'Y', 'Z']
-
-
 def main():
     gatenumber = input("Gate case (1.AND 2.OR 3.NAND) :") # 選擇要用哪個gate
     # 產生F
@@ -56,11 +53,9 @@ def main():
             truth_table.append(combine)
             c=c+1
 
-    print(tabulate(truth_table, headers=['A', 'B','F'],tablefmt='orgtbl'))
-    '''
-    for i in range(4):
-        print(truth_table[i][0],' ',truth_table[i][1],' ',truth_table[i][2])
-    '''
+    print('\n(Only User)')
+    print(tabulate(truth_table, headers=['A','B','F'],tablefmt='orgtbl'))
+
     w = input("\nplease input AB (ex.00,01,10,11): ")
     w_num = []
     w_num.append(int(w[0]))
