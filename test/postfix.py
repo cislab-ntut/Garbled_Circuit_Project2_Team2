@@ -33,6 +33,6 @@ def infix_to_postfix(infixexpr):
 #最後將stack清空
     while not opStack.is_empty():
         postfixList.append(opStack.pop())
-    return " ".join(postfixList)
+    return "".join(postfixList)
 
 
