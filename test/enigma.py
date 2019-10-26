@@ -27,7 +27,7 @@ def plugboard(list):
             list[list.index(c1)] = c2
             list[list.index(c2)] = c1
 
-def main(sign_truth_table):#輸入4*3的list真值表，F經過A起始位置加密，再經過B起始位置加密，
+def main(sign_truth_table):#輸入4*3的list真值表，F+A+B經過A起始位置加密，再經過B起始位置加密
     print('enigma')
     encrypt_signs = []
     for s_pointer in range(len(sign_truth_table)):
