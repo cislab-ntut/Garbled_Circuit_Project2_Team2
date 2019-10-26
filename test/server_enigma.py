@@ -27,7 +27,7 @@ def plugboard(list):
             list[list.index(c1)] = c2
             list[list.index(c2)] = c1
 
-def main(input_1, input_2, encrypt_truth_table):
+def main(input_1, input_2, encrypt_truth_table):#先用B起始位置解密，再用A起始位置解密，如果最後6字母=A+B，就是對的
     print('decrypt enigma')
     decrypt_sign = []
     for s_pointer in range(len(encrypt_truth_table)):
