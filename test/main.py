@@ -5,82 +5,107 @@ from tabulate import tabulate
 
 char_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
              'V', 'W', 'X', 'Y', 'Z']
+exist = [] # 存已經用過的隨機字串
+exist2 = [] # 存重複的char
+def create_randomstring():  # 用來判斷隨機產生的字串有沒有重複
+    temp = ''.join(random.sample(char_list, 3))
+    while (1):
+        if temp in exist:
+            temp = ''.join(random.sample(char_list, 3))
+        elif temp not in exist:
+            exist.append(temp)
+            break
+    return temp
+
 def main():
-    '''
-    gatenumber = input("Gate case (1.AND 2.OR 3.NAND) :") # 選擇要用哪個gate
-    '''
-    inputstring = input("input(ex.(1*0)): ")
-    # inputstring = "(1+0)"
-    postfix_r = postfix.infix_to_postfix(inputstring)
+    # inputstring = input("input(ex.(1*0)): ")
+    inputstring = "((A*B)-((C+D)*(D-E)))"  # ppt範例
+    print("circuit:",inputstring)
+    input_l = len(inputstring)
+    count = 0
+    for i in range(input_l):  # 數input要幾個
+        if inputstring[i] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" and (inputstring[i] not in exist2):
+            count = count + 1
+            exist2.append(inputstring[i])
+    while (1):  # 輸入input
+        inputvalue = input("input(EX.10110): ")
+        if len(inputvalue) != count:
+            print("wrong length!")
+            continue
+        break
+    c = 0
+    for i in range(input_l):  # 將ABC...Z替換成01
+        if inputstring[i] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            inputstring = inputstring.replace(inputstring[i],inputvalue[c])
+            c = c+1
+    postfix_r = postfix.infix_to_postfix(inputstring)  # 中序式轉後序式
     print("pos: ",postfix_r)
-    len_of_F = 3  # F的字串長度
     l = len(postfix_r)  # 後序式長度
-    w = []  # 存運算元
-    for i in range(l):
-        if postfix_r[i] in "01":
-            w.append(postfix_r[i])
-        if postfix_r[i] == '*':
-            F = [] # 存output的list
-            zero = ''.join(random.sample(char_list,len_of_F))  # 隨機產生字串
-            for i in range(3):
-                F.append(zero) # ANDgate前面3個是0
-            one = ''.join(random.sample(char_list,len_of_F))
-            F.append(one) # 最後一個是1
-            # print(F)
-            gatename = "AND"
-        elif postfix_r[i] == '+':
-            F = []
-            zero = ''.join(random.sample(char_list, len_of_F))
-            F.append(zero) # ORgate第一個是0
-            one = ''.join(random.sample(char_list, len_of_F))
-            for i in range(3):
-                F.append(one) # ORgate後面三個是1
-            # print(F)
-            gatename = "OR"
-        '''
-        elif postfix_r[i] == '3':
-            F = []
-            one = ''.join(random.sample(char_list, len_of_F))
-            for i in range(3):
-                F.append(one)
-            zero = ''.join(random.sample(char_list, len_of_F))
-            F.append(zero)
-            # print(F)
-        '''
+    stack = []  # 計算用(只會存0,1)
+    string_stack = []  # 放隨機字串用
+    for i in range(l):  # 從後序式第一個字元開始讀到最後一個
+        if postfix_r[i] in "01":  # 為0或1的話就放到stack
+            stack.append(postfix_r[i])
+        elif postfix_r[i] == "*" or postfix_r[i] == "+":
+            op_check = postfix_r[i]
+            if len(stack) >= 2:
+                temp2 = int(stack.pop())
+                temp1 = int(stack.pop())  # 遇到運算子就將stack最上面2個拿出來運算
+            if op_check == "*": # 運算結果
+                temp3 = temp1 * temp2
+            elif op_check == "+":
+                temp3 = temp1 + temp2
+                if temp3 == 2:
+                    temp3 = 1
+            stack.append(str(temp3))
 
+            A = []  # 存inputA
+            B = []  # 存inputB
 
-    A = [] # 存inputA
-    B = [] # 存inputB
-    # 產生input(A0,A1,B0,B1)
-    for i in range(2):
-        A.append(''.join(random.sample(char_list,3)))  # 隨機產生3個字元的字串
-        B.append(''.join(random.sample(char_list,3)))  # 隨機產生3個字元的字串
-    print('A0=', A[0],'  A1=', A[1])
-    print('B0=', B[0],'  B1=', B[1])
-    print('F0=', zero,'  F1=',one)
-    truth_table = []
-    c=0 # outputF的counter
-    for i in range(2):
-        for j in range(2):
-            combine = []
-            combine.append(A[i])
-            combine.append(B[j])
-            combine.append(F[c]) # 產生truth table的每一排
-            truth_table.append(combine)
-            c=c+1
+            # 產生input(A0,A1,B0,B1)
+            # 判斷string_stack長度是不是>=4，如果是的話表示目前gate在第二層(含以上)
+            if len(string_stack) < 4:
+                for i in range(2):
+                    A.append(create_randomstring())  # 隨機產生3個字元的字串
+                    B.append(create_randomstring())  # 隨機產生3個字元的字串
+            elif len(string_stack) >= 4:
+                B.append(string_stack.pop())
+                B.append(string_stack.pop())
+                A.append(string_stack.pop())
+                A.append(string_stack.pop())
 
-    print('\n(Only User)')
-    print(gatename,"gate: ")
-    print(tabulate(truth_table, headers=['A','B','F'],tablefmt='orgtbl'))
+            F = []  # 存output
+            zero = create_randomstring()
+            one = create_randomstring()  # 隨機產生字串
+            gatename = ["AND gate","OR gate"]
+            if op_check == "*":
+                for i in range(3):
+                    F.append(zero)  # 前面3個是0
+                F.append(one)  # 最後一個是1
+                gatename_index = 0
+            elif op_check == "+":
+                F.append(zero)  # 第一個是0
+                for i in range(3):
+                    F.append(one)  # 最後3個是1
+                gatename_index = 1
 
-    '''
-    w = input("\nplease input AB (ex.00,01,10,11): ")
-    '''
-    w_num = [] # 存運算元轉int
-    w_num.append(int(w[0])) # inputA轉成int並存入
-    w_num.append(int(w[1])) # inputB轉成int並存入
-    print(F[w_num[0]*2+w_num[1]],'\n↓')
-    enigma.main(A[w_num[0]],B[w_num[1]],F[w_num[0]*2+w_num[1]])
+            string_stack.append(one)
+            string_stack.append(zero)
+
+            truth_table = []
+            c = 0  # outputF的counter
+            for i in range(2):
+                for j in range(2):
+                    combine = []
+                    combine.append(A[i])
+                    combine.append(B[j])
+                    combine.append(F[c])  # 產生truth table的每一排
+                    truth_table.append(combine)
+                    c = c + 1
+            print(gatename[gatename_index])
+            print(tabulate(truth_table, headers=['A', 'B', 'F'], tablefmt='orgtbl'))
+            #print(string_stack)
+            #print(exist)
 
 if __name__ == '__main__':
     main()
