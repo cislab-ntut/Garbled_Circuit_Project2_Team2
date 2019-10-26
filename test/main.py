@@ -1,5 +1,6 @@
 import random
 import enigma
+import server_enigma
 import postfix
 from tabulate import tabulate
 
@@ -46,7 +47,7 @@ def main():
     for i in range(l):  # 從後序式第一個字元開始讀到最後一個
         if postfix_r[i] in "01":  # 為0或1的話就放到stack
             stack.append(postfix_r[i])
-        elif postfix_r[i] == "*" or postfix_r[i] == "+":
+        elif postfix_r[i] == "*" or postfix_r[i] == "+" or postfix_r[i] == "-":
             op_check = postfix_r[i]
             if len(stack) >= 2:
                 temp2 = int(stack.pop())
@@ -57,18 +58,22 @@ def main():
                 temp3 = temp1 + temp2
                 if temp3 == 2:
                     temp3 = 1
+            elif op_check == "-":
+                if temp1 == 0 or temp2 == 0:
+                    temp3 = 1
+                elif temp1 == 1 and temp2 == 1:
+                    temp3 = 0
             stack.append(str(temp3))
 
             A = []  # 存inputA
             B = []  # 存inputB
-
             # 產生input(A0,A1,B0,B1)
-            # 判斷string_stack長度是不是>=4，如果是的話表示目前gate在第二層(含以上)
-            if len(string_stack) < 4:
+            # 判斷postfix[i]的前一個是否為運算子，是的話即為下一層
+            if postfix_r[i-1] not in "*+-":
                 for i in range(2):
                     A.append(create_randomstring())  # 隨機產生3個字元的字串
                     B.append(create_randomstring())  # 隨機產生3個字元的字串
-            elif len(string_stack) >= 4:
+            elif postfix_r[i-1] in "*+-":  #是運算子的話表示到了下一層，需要上一層的output當作此層的input
                 B.append(string_stack.pop())
                 B.append(string_stack.pop())
                 A.append(string_stack.pop())
@@ -77,7 +82,7 @@ def main():
             F = []  # 存output
             zero = create_randomstring()
             one = create_randomstring()  # 隨機產生字串
-            gatename = ["AND gate","OR gate"]
+            gatename = ["AND gate","OR gate","NAND gate"]
             if op_check == "*":
                 for i in range(3):
                     F.append(zero)  # 前面3個是0
@@ -88,6 +93,11 @@ def main():
                 for i in range(3):
                     F.append(one)  # 最後3個是1
                 gatename_index = 1
+            elif op_check == "-":
+                for i in range(3):
+                    F.append(one)  # 前面3個是1
+                F.append(zero)  # 最後一個是0
+                gatename_index = 2
 
             string_stack.append(one)
             string_stack.append(zero)
@@ -104,8 +114,9 @@ def main():
                     c = c + 1
             print(gatename[gatename_index])
             print(tabulate(truth_table, headers=['A', 'B', 'F'], tablefmt='orgtbl'))
-            #print(string_stack)
+            #print("string_stack",string_stack)
             #print(exist)
+            print(server_enigma.main(A[temp1],B[temp2],enigma.main(truth_table)))
 
 if __name__ == '__main__':
     main()
