@@ -3,8 +3,9 @@ from stack import Stack
 def infix_to_postfix(infixexpr):
 #首先用一個dict來設定各個運算符的優先級
     prec = {}
-    prec["*"] = 2
-    prec["+"] = 2
+    prec["*"] = 2 #AND
+    prec["+"] = 2 #OR
+    prec["-"] = 2 #NAND
     prec["("] = 1
 
 #step one 創建一個新的stack和一個空的list
