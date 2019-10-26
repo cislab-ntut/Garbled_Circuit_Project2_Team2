@@ -27,32 +27,27 @@ def plugboard(list):
             list[list.index(c1)] = c2
             list[list.index(c2)] = c1
 
-def main(sign_list):#輸入4*3的list真值表
-    encryp_signs = []
-    for s_pointer in range(len(sign_list)):
-        encryp_sign = ''
+def main(sign_truth_table):#輸入4*3的list真值表，F經過A起始位置加密，再經過B起始位置加密，
+    print('enigma')
+    encrypt_signs = []
+    for s_pointer in range(len(sign_truth_table)):
         output = ''
-        for encryp_times in range (3):
+        for encrypt_times in range (2):
             order_list  = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
             R_rotor_list = ['B','D','F','H','J','L','C','P','R','T','X','V','Z','N','Y','E','I','W','G','A','K','M','U','S','Q','O']
             D_rotor_list = ['A','J','D','K','S','I','R','U','X','B','L','H','W','T','M','C','Q','G','Z','N','P','Y','F','V','O','E']
             L_rotor_list = ['E','K','M','F','L','G','D','Q','V','Z','N','T','O','W','Y','H','X','U','S','P','A','I','B','R','C','J']
             reflector_list = ['Y','R','U','H','Q','S','L','D','P','X','N','G','O','K','M','I','E','B','F','Z','C','W','V','J','A','T']
-            if encryp_times == 0:
-                s1 = sign_list[s_pointer][0][0]
-                s2 = sign_list[s_pointer][0][1]
-                s3 = sign_list[s_pointer][0][2]
-                encryp_temp = sign_list[s_pointer][2]
-            elif encryp_times == 1:
-                s1 = sign_list[s_pointer][1][0]
-                s2 = sign_list[s_pointer][1][1]
-                s3 = sign_list[s_pointer][1][2]
-                encryp_temp = output
-            elif encryp_times == 2:
-                s1 = sign_list[s_pointer][0][0]
-                s2 = sign_list[s_pointer][0][1]
-                s3 = sign_list[s_pointer][0][2]
-                encryp_temp = output
+            if encrypt_times == 0:
+                s1 = sign_truth_table[s_pointer][0][0]
+                s2 = sign_truth_table[s_pointer][0][1]
+                s3 = sign_truth_table[s_pointer][0][2]
+                encrypt_temp = sign_truth_table[s_pointer][2] + sign_truth_table[s_pointer][0] + sign_truth_table[s_pointer][1]
+            elif encrypt_times == 1:
+                s1 = sign_truth_table[s_pointer][1][0]
+                s2 = sign_truth_table[s_pointer][1][1]
+                s3 = sign_truth_table[s_pointer][1][2]
+                encrypt_temp = output
             r1 = 'W'
             r2 = 'F'
             r3 = 'R'
@@ -60,7 +55,7 @@ def main(sign_list):#輸入4*3的list真值表
             r2_count = pointer_count(s2, r2)
             r3_count = pointer_count(s3, r3)
             output = ''
-            for i in range(len(encryp_temp)):
+            for i in range(len(encrypt_temp)):
                 r1_count -= 1
                 if ((ord(s1) + 1) > 90):
                     s1 = chr(65)
@@ -94,7 +89,7 @@ def main(sign_list):#輸入4*3的list真值表
                     else:
                         s2 = chr(ord(s2) + 1)  # 轉盤1一圈後輪盤2轉動
 
-                step1 = (order_to_letter(letter_to_ord(s1) + letter_to_ord(encryp_temp[i])))  # 從s1開始數input的位置
+                step1 = (order_to_letter(letter_to_ord(s1) + letter_to_ord(encrypt_temp[i])))  # 從s1開始數input的位置
                 # print(step1)  # 轉盤1外圈
 
                 step2 = R_rotor_list[letter_to_ord(step1)]
@@ -145,11 +140,6 @@ def main(sign_list):#輸入4*3的list真值表
                 g = pos_count(s1, step13)
                 #print(order_list[g] , end='')
                 output = output + order_list[g]
-            if encryp_times == 1:
-                encryp_sign = output
-            elif encryp_times == 2:
-                encryp_sign = encryp_sign + output
-                encryp_signs.append(encryp_sign)
-    print(encryp_signs)
-
-
+            if encrypt_times == 1:
+                encrypt_signs.append(output)
+    return encrypt_signs
