@@ -2,7 +2,7 @@ import hashlib
 
 def s_x_h(input_A, input_B, encrypt_table):
     for table_len in range(len(encrypt_table)):
-        sha = hashlib.md5()
+        sha = hashlib.sha256()
         s1_t = int(input_A, 16)
         s2_t = int(input_B, 16)
         s3_t = int(encrypt_table[table_len][0], 16)
