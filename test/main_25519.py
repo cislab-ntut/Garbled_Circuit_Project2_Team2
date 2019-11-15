@@ -12,7 +12,7 @@ INPUT_P = 0
 F = 0
 
 
-def Random_Label():
+def Random_Label():#產出隨機字串以及避免重複
     global USED_LABEL
     _temp = hex(Random.randint(0, 2**256 - 1))[2:]
     while (_temp in USED_LABEL):
@@ -21,7 +21,7 @@ def Random_Label():
     return _temp
 
 
-def Deal_Type(_num):
+def Deal_Type(_num):#只有輸入input的時候會有value值，其餘皆為預設0，只會改變state
     _return = []
     _temp = _num
     for i in range(len(_temp)):
@@ -42,7 +42,7 @@ def Type_Fill_Zero(_type, _long):
     return _return
 
 
-def Type_Lstrip(_type, _value):
+def Type_Lstrip(_type, _value):#移除前端不必要的0，例如:001101>1101
     _count = 0
     for _item in _type:
         _temp = '0' if _item['state'] == _item['0'] else '1'
@@ -53,7 +53,7 @@ def Type_Lstrip(_type, _value):
     return _type[_count:]
 
 
-def Type_Value(_type):
+def Type_Value(_type):#用state判斷value並計算正確答案
     _value = ''
     for _item in _type:
         _value += '0' if _item['state'] == _item['0'] else '1'
@@ -61,23 +61,12 @@ def Type_Value(_type):
     return int(_value, 2)
 
 
-def Input_Information():
-    global INPUT_G, INPUT_X, INPUT_K, INPUT_P, F
-    print("( g ^ x ) mod ( 2 ^ 255 - 19 )")
-    INPUT_TYPE = input("Number bases of g and x, (1)BIN (2)DEC : ")
-    while(INPUT_TYPE != '1' and INPUT_TYPE != '2'):
-        INPUT_TYPE = input("Enter 1 or 2, (1)BIN (2)DEC : ")
-    if INPUT_TYPE == '1':
-        INPUT_G = int(input("g = "), 2)
-        INPUT_X = int(input("x = "), 2)
-    elif INPUT_TYPE == '2':
-        INPUT_G = int(input("g = "))
-        INPUT_X = int(input("x = "))
-
-    F = Deal_Type(bin(INPUT_G)[2:])
-    INPUT_G = Deal_Type(bin(INPUT_G)[2:])
-    INPUT_K = len(INPUT_G)
-    INPUT_P = Deal_Type(bin(19)[2:])
+def Do_Enc_Dec(_A_State, _B_State, _truth_table):
+    _encrypt_table = xor_hash.x_h(_truth_table)#加密truth table, 只傳回加密後的table
+    Random.shuffle(_encrypt_table)#打亂table
+    
+    _label = server_xor_hash.s_x_h(_A_State, _B_State, _encrypt_table)#input label跟加密混淆後的table進行解密
+    return _label
 
 
 def Type_Singal_And(_A, _B):
@@ -88,10 +77,7 @@ def Type_Singal_And(_A, _B):
         [_A['1'], _B['0'], _return['0']],
         [_A['1'], _B['1'], _return['1']]
     ]
-    _encrypt_table = xor_hash.x_h(_truth_table)#加密truth table, 只傳回加密後的table
-    Random.shuffle(_encrypt_table)#打亂table
-    _label = server_xor_hash.s_x_h(_A['state'], _B['state'], _encrypt_table)#input label跟加密後的table進行解密
-    _return['state'] = _label#state等於解出來的label
+    _return['state'] = Do_Enc_Dec(_A['state'], _B['state'], _truth_table)#state等於解出來的label
     return _return
 
 
@@ -103,10 +89,7 @@ def Type_Singal_Or(_A, _B):
         [_A['1'], _B['0'], _return['1']],
         [_A['1'], _B['1'], _return['1']]
     ]
-    _encrypt_table = xor_hash.x_h(_truth_table)#加密truth table, 只傳回加密後的table
-    Random.shuffle(_encrypt_table)#打亂table
-    _label = server_xor_hash.s_x_h(_A['state'], _B['state'], _encrypt_table)#input label跟加密後的table進行解密
-    _return['state'] = _label#state等於解出來的label
+    _return['state'] = Do_Enc_Dec(_A['state'], _B['state'], _truth_table)#state等於解出來的label
     return _return
 
 
@@ -118,16 +101,31 @@ def Type_Singal_Xor(_A, _B):
         [_A['1'], _B['0'], _return['1']],
         [_A['1'], _B['1'], _return['0']]
     ]
-    _encrypt_table = xor_hash.x_h(_truth_table)#加密truth table, 只傳回加密後的table
-    Random.shuffle(_encrypt_table)#打亂table
-    _label = server_xor_hash.s_x_h(_A['state'], _B['state'], _encrypt_table)#input label跟加密後的table進行解密
-    _return['state'] = _label#state等於解出來的label
+    _return['state'] = Do_Enc_Dec(_A['state'], _B['state'], _truth_table)#state等於解出來的label
     return _return
 
 
-def Type_Multiply(A, B):# * = and
+def Type_Add(A, B):#加法器
+    l = len(A) + 1 if len(A) >= len(B) else len(B) + 1#方便進行加法，以及有進位，把2個input長度增加到較長的input長度+1
+    A = Type_Fill_Zero(A, l)
+    B = Type_Fill_Zero(B, l)
+
+    S = []
+    c_total_out = [Deal_Type('0')[0]]
+    c_singal_out = Deal_Type('0')[0]
+    for i in range(l - 1, -1, -1):
+        s_singal_out = Type_Singal_Xor(Type_Singal_Xor(A[i], B[i]), c_singal_out)
+        S = [s_singal_out] + S
+        if i != 0:
+            c_singal_out = Type_Singal_Or(Type_Singal_And(A[i], B[i]), Type_Singal_And(Type_Singal_Xor(A[i], B[i]), c_singal_out))
+            c_total_out = [c_singal_out] + c_total_out
+
+    return S
+
+
+def Type_Multiply(A, B):#乘法器
     T = []
-    for l_B in range(len(B) - 1, -1, -1):
+    for l_B in range(len(B) - 1, -1, -1):#先算出每一個bit乘出來的值
         t_total_out = []
         for l_A in range(len(A) - 1, -1, -1):
             t_singal_out = Type_Singal_And(B[l_B], A[l_A])
@@ -136,7 +134,7 @@ def Type_Multiply(A, B):# * = and
 
     S = []
     s_temp = []
-    for i in range(len(T)):
+    for i in range(len(T)):#再一排一排相加
         if i == 0:
             s_temp = T[i]
         else:
@@ -145,25 +143,6 @@ def Type_Multiply(A, B):# * = and
         s_temp = s_temp[:-1]
 
     S = s_temp + S
-    return S
-
-
-def Type_Add(A, B):# ^ = xor, + = or, * = and
-    l = len(A) + 1 if len(A) >= len(B) else len(B) + 1
-    A = Type_Fill_Zero(A, l)
-    B = Type_Fill_Zero(B, l)
-    
-    S = []
-    c_total_out = [Deal_Type('0')[0]]
-    c_singal_out = Deal_Type('0')[0]
-    
-    for i in range(l - 1, -1, -1):
-        s_singal_out = Type_Singal_Xor(Type_Singal_Xor(A[i], B[i]), c_singal_out)
-        S = [s_singal_out] + S
-        if i != 0:
-            c_singal_out = Type_Singal_Or(Type_Singal_And(A[i], B[i]), Type_Singal_And(Type_Singal_Xor(A[i], B[i]), c_singal_out))
-            c_total_out = [c_singal_out] + c_total_out
-
     return S
 
 
@@ -184,6 +163,25 @@ def Pseudocode():
     F = Type_Value(F)
     print('我的答案 :', F)
 
+
+def Input_Information():
+    global INPUT_G, INPUT_X, INPUT_K, INPUT_P, F
+    print("( g ^ x ) mod ( 2 ^ 255 - 19 )")
+    INPUT_TYPE = input("Number bases of g and x, (1)BIN (2)DEC : ")
+    while(INPUT_TYPE != '1' and INPUT_TYPE != '2'):
+        INPUT_TYPE = input("Enter 1 or 2, (1)BIN (2)DEC : ")
+    if INPUT_TYPE == '1':
+        INPUT_G = int(input("g = "), 2)
+        INPUT_X = int(input("x = "), 2)
+    elif INPUT_TYPE == '2':
+        INPUT_G = int(input("g = "))
+        INPUT_X = int(input("x = "))
+
+    F = Deal_Type(bin(INPUT_G)[2:])
+    INPUT_G = Deal_Type(bin(INPUT_G)[2:])
+    INPUT_K = len(INPUT_G)
+    INPUT_P = Deal_Type(bin(19)[2:])
+    
 
 def main():
     Input_Information()
