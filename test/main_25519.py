@@ -92,7 +92,6 @@ def Type_Singal_And(_A, _B):
     Random.shuffle(_encrypt_table)#打亂table
     _label = server_xor_hash.s_x_h(_A['state'], _B['state'], _encrypt_table)#input label跟加密後的table進行解密
     _return['state'] = _label#state等於解出來的label
-    #_return['value'] = '0' if _return['state'] == _return['0'] else '1'
     return _return
 
 
@@ -108,7 +107,6 @@ def Type_Singal_Or(_A, _B):
     Random.shuffle(_encrypt_table)#打亂table
     _label = server_xor_hash.s_x_h(_A['state'], _B['state'], _encrypt_table)#input label跟加密後的table進行解密
     _return['state'] = _label#state等於解出來的label
-    #_return['value'] = '0' if _return['state'] == _return['0'] else '1'
     return _return
 
 
@@ -124,13 +122,10 @@ def Type_Singal_Xor(_A, _B):
     Random.shuffle(_encrypt_table)#打亂table
     _label = server_xor_hash.s_x_h(_A['state'], _B['state'], _encrypt_table)#input label跟加密後的table進行解密
     _return['state'] = _label#state等於解出來的label
-    #_return['value'] = '0' if _return['state'] == _return['0'] else '1'
     return _return
 
 
 def Type_Multiply(A, B):# * = and
-    A = Type_Lstrip(A, '0')
-    B = Type_Lstrip(B, '0')
     T = []
     for l_B in range(len(B) - 1, -1, -1):
         t_total_out = []
@@ -150,7 +145,6 @@ def Type_Multiply(A, B):# * = and
         s_temp = s_temp[:-1]
 
     S = s_temp + S
-    S = Type_Lstrip(S, '0')
     return S
 
 
@@ -158,12 +152,13 @@ def Type_Add(A, B):# ^ = xor, + = or, * = and
     l = len(A) + 1 if len(A) >= len(B) else len(B) + 1
     A = Type_Fill_Zero(A, l)
     B = Type_Fill_Zero(B, l)
-
+    
     S = []
     c_total_out = [Deal_Type('0')[0]]
     c_singal_out = Deal_Type('0')[0]
+    
     for i in range(l - 1, -1, -1):
-        s_singal_out = Type_Singal_Xor(Type_Singal_Xor(A[i], B1[i]), c_singal_out)
+        s_singal_out = Type_Singal_Xor(Type_Singal_Xor(A[i], B[i]), c_singal_out)
         S = [s_singal_out] + S
         if i != 0:
             c_singal_out = Type_Singal_Or(Type_Singal_And(A[i], B[i]), Type_Singal_And(Type_Singal_Xor(A[i], B[i]), c_singal_out))
@@ -197,4 +192,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    
+    
