@@ -1,55 +1,61 @@
 import random as Random
+import time
 import xor_hash
 import server_xor_hash
 
 
 USED_LABEL = []
+GATE_COUNT = 0
+REPEAT_TIMES = 0
 INPUT_TYPE = 0
 INPUT_G = 0
 INPUT_X = 0
-INPUT_K = 0
 INPUT_P = 0
+INPUT_N = 0
+INPUT_C = 0
 F = 0
 
 
 def Random_Label():#產出隨機字串以及避免重複
-    global USED_LABEL
+    global USED_LABEL, REPEAT_TIMES
     _temp = hex(Random.randint(0, 2**256 - 1))[2:]
     while (_temp in USED_LABEL):
+        REPEAT_TIMES += 1
         _temp = hex(Random.randint(0, 2**256 - 1))[2:]
     USED_LABEL.append(_temp)
     return _temp
 
 
-def Deal_Type(_num):#只有輸入input的時候會有value值，其餘皆為預設0，只會改變state
+def Deal_Type(_num):#存有'0'、'1'的亂數Label，state只有在一開始使用者輸入的值才會是該值的Label，其餘state接預設為0的Label
     _return = []
-    _temp = _num
-    for i in range(len(_temp)):
+    for i in range(len(_num)):
         _dic = {}
-        _dic['value'] = _temp[i]
         _dic['0'] = Random_Label()
         _dic['1'] = Random_Label()
-        _dic['state'] = _dic[_dic['value']]
+        _dic['state'] = _dic[_num[i]]
         _return.append(_dic)
     return _return
 
 
-def Type_Fill_Zero(_type, _long):
-    _return = []
+def Type_Fill_Zero(_type, _long):#填滿_long長度的'0'
     _temp = ''.zfill(_long - len(_type))
     _temp = Deal_Type(_temp)
     _return = _temp + _type
     return _return
 
 
-def Type_Lstrip(_type, _value):#移除前端不必要的0，例如:001101>1101
+def Type_Lstrip(_type, _value, _long = 0):#_value : 要移除的值, _long : 要刪除的值的長度
     _count = 0
-    for _item in _type:
-        _temp = '0' if _item['state'] == _item['0'] else '1'
+    if _long == 0:
+        _stop = len(_type)
+    else:
+        _stop = _long
+
+    for _item in range(_stop):
+        _temp = '0' if _type[_item]['state'] == _type[_item]['0'] else '1'
         if _temp != _value:
             break
         _count += 1
-
     return _type[_count:]
 
 
@@ -57,19 +63,19 @@ def Type_Value(_type):#用state判斷value並計算正確答案
     _value = ''
     for _item in _type:
         _value += '0' if _item['state'] == _item['0'] else '1'
-
     return int(_value, 2)
 
 
 def Do_Enc_Dec(_A_State, _B_State, _truth_table):
     _encrypt_table = xor_hash.x_h(_truth_table)#加密truth table, 只傳回加密後的table
     Random.shuffle(_encrypt_table)#打亂table
-    
     _label = server_xor_hash.s_x_h(_A_State, _B_State, _encrypt_table)#input label跟加密混淆後的table進行解密
     return _label
 
 
 def Type_Singal_And(_A, _B):
+    global GATE_COUNT
+    GATE_COUNT += 1
     _return = Deal_Type('0')[0]
     _truth_table = [
         [_A['0'], _B['0'], _return['0']],
@@ -82,6 +88,8 @@ def Type_Singal_And(_A, _B):
 
 
 def Type_Singal_Or(_A, _B):
+    global GATE_COUNT
+    GATE_COUNT += 1
     _return = Deal_Type('0')[0]
     _truth_table = [
         [_A['0'], _B['0'], _return['0']],
@@ -94,6 +102,8 @@ def Type_Singal_Or(_A, _B):
 
 
 def Type_Singal_Xor(_A, _B):
+    global GATE_COUNT
+    GATE_COUNT += 1
     _return = Deal_Type('0')[0]
     _truth_table = [
         [_A['0'], _B['0'], _return['0']],
@@ -119,7 +129,6 @@ def Type_Add(A, B):#加法器
         if i != 0:
             c_singal_out = Type_Singal_Or(Type_Singal_And(A[i], B[i]), Type_Singal_And(Type_Singal_Xor(A[i], B[i]), c_singal_out))
             c_total_out = [c_singal_out] + c_total_out
-
     return S
 
 
@@ -147,41 +156,51 @@ def Type_Multiply(A, B):#乘法器
 
 
 def Pseudocode():
-    global INPUT_G, INPUT_X, INPUT_K, INPUT_P, F
+    global INPUT_G, INPUT_X, INPUT_P, INPUT_N, INPUT_C, F
 
     for times in range(INPUT_X - 1):#X次方
         F = Type_Multiply(INPUT_G, F)
-        while len(F) > INPUT_K:
-            F = Type_Add(Type_Multiply(F[:len(F) - len(INPUT_G)], INPUT_P), F[len(F) - len(INPUT_G):])
+        while len(F) > INPUT_N:
+            F = Type_Add(Type_Multiply(F[:len(F) - INPUT_N], INPUT_C), F[len(F) - INPUT_N:])
             F = Type_Lstrip(F, '0')
 
-    INPUT_G = Type_Value(INPUT_G)
-    INPUT_P = Type_Value(INPUT_P)
-    print('(', INPUT_G, '^', INPUT_X, ') % ( 2 ^', INPUT_K, '-', INPUT_P, ')')
-    print('(', INPUT_G ** INPUT_X, ') % (', (2 ** INPUT_K) - INPUT_P, ')')
-    print('正確答案 :', (INPUT_G ** INPUT_X) % ((2 ** INPUT_K) - INPUT_P))
-    F = Type_Value(F)
-    print('我的答案 :', F)
+    value_G = Type_Value(INPUT_G)
+    value_C = Type_Value(INPUT_C)
+    print('(', value_G, '^', INPUT_X, ') % ( 2 ^', INPUT_N, '-', value_C, ')')
+    print('(', value_G ** INPUT_X, ') % (', (2 ** INPUT_N) - value_C, ')')
+    print('正確答案 :', (value_G ** INPUT_X) % INPUT_P)
+
+    value_F = Type_Value(F)
+    if value_F >= INPUT_P:
+        F = Type_Add(F, INPUT_C)
+        F = Type_Lstrip(F, '1', 1)
+        value_F = Type_Value(F)
+    print('我的答案 :', value_F)
+    print('Label使用量 :', len(USED_LABEL))
+    print('Label重複次數 :', REPEAT_TIMES)
+    print('GATE使用量 :', GATE_COUNT)
 
 
 def Input_Information():
-    global INPUT_G, INPUT_X, INPUT_K, INPUT_P, F
-    print("( g ^ x ) mod ( 2 ^ 255 - 19 )")
-    INPUT_TYPE = input("Number bases of g and x, (1)BIN (2)DEC : ")
+    global INPUT_G, INPUT_X, INPUT_P, INPUT_N, INPUT_C, F
+    print("( g ^ x ) mod p")
+    INPUT_TYPE = input("Number bases of g x p, (1)BIN (2)DEC : ")
     while(INPUT_TYPE != '1' and INPUT_TYPE != '2'):
         INPUT_TYPE = input("Enter 1 or 2, (1)BIN (2)DEC : ")
     if INPUT_TYPE == '1':
         INPUT_G = int(input("g = "), 2)
         INPUT_X = int(input("x = "), 2)
+        INPUT_P = int(input("p = "), 2)
     elif INPUT_TYPE == '2':
         INPUT_G = int(input("g = "))
         INPUT_X = int(input("x = "))
+        INPUT_P = int(input("p = "))
 
     F = Deal_Type(bin(INPUT_G)[2:])
     INPUT_G = Deal_Type(bin(INPUT_G)[2:])
-    INPUT_K = len(INPUT_G)
-    INPUT_P = Deal_Type(bin(19)[2:])
-    
+    INPUT_N = len(bin(INPUT_P)[2:])#ex : INPUT_P = 2 ^ 255 - 19, INPUT_N = 255
+    INPUT_C = Deal_Type(bin(2 ** INPUT_N - INPUT_P)[2:])#INPUT_P的2's Complement, ex : INPUT_P = 2 ^ 255 - 19, INPUT_C = 19
+
 
 def main():
     Input_Information()
@@ -189,6 +208,8 @@ def main():
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     main()
-    
-    
+    end_time = time.time()
+    print(end_time - start_time, 'seconds')
+
