@@ -156,12 +156,12 @@ def Pseudocode():
 def Input_Information():
     global INPUT_G, INPUT_X, INPUT_P, INPUT_N, INPUT_C, F
     print("( g ^ x ) mod p")
-    '''bases = input("Number bases of g x p, (1)BIN (2)DEC : ")
+    bases = input("Number bases of g x p, (1)BIN (2)DEC : ")
     while(bases != '1' and bases != '2'):
-        bases = input("Enter 1 or 2, (1)BIN (2)DEC : ")'''
+        bases = input("Enter 1 or 2, (1)BIN (2)DEC : ")
 
     fw_input = open('D:/input.txt', 'w')
-    '''fw_input.write(bases + ' ')
+    fw_input.write(bases + ' ')
     if bases == '1':
         INPUT_G = int(input("g = "), 2)
         INPUT_X = int(input("x = "), 2)
@@ -171,12 +171,12 @@ def Input_Information():
         INPUT_G = int(input("g = "))
         INPUT_X = int(input("x = "))
         INPUT_P = int(input("p = "))
-        fw_input.write(str(INPUT_G) + ' ' + str(INPUT_X) + ' ' + str(INPUT_P))'''
-    y = 12
+        fw_input.write(str(INPUT_G) + ' ' + str(INPUT_X) + ' ' + str(INPUT_P))
+    '''y = 12
     INPUT_G = Random.randint(2 ** (y - 1), 2 ** y - 1)
     INPUT_X = Random.randint(2 ** (y - 1), 2 ** y - 1)
     INPUT_P = Random.randint(2 ** (y - 1), 2 ** y - 1)
-    fw_input.write(str(INPUT_G) + ' ' + str(INPUT_X) + ' ' + str(INPUT_P))
+    fw_input.write(str(INPUT_G) + ' ' + str(INPUT_X) + ' ' + str(INPUT_P))'''
     fw_input.close()
 
     F = Deal_Type(bin(INPUT_G)[2:])
@@ -189,7 +189,6 @@ def main():
     Input_Information()
     Pseudocode()
     index_add = len(INPUT_G) * 2 + len(INPUT_C) + 1
-
     fw_circuit = open('D:/circuit.txt', 'w')
     for i in range(len(CIRCUIT)):
         if (i + index_add) not in REMOVE_NUM:
