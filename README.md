@@ -8,10 +8,13 @@ https://drive.google.com/open?id=12KNqMt8HA6rP0rpxQUtpiHF2hAFOhq2T
 方法:
 
 ```
+f = g
 for i in range x-1:
-  f = g * g
+  f = f * g
   while (len(f) > len(p)):
-    f = f[:len(f) - len(p)] * p 2's complement + f[:len(f) - len(p):]
+    f = f[:len(f) - len(p)] * (p 2's complement) + f[:len(f) - len(p):]
+if f > p:
+  f = f + (p 2's complement)
 ```
 
 乘法用乘法器完成，加法用加法器完成。
